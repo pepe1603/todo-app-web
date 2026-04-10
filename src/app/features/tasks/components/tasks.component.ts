@@ -175,9 +175,7 @@ import { TaskStats } from '../models/task-stats';
               <span class="status" [class]="'status-' + task.status.toLowerCase()">{{
                 task.status
               }}</span>
-              <span *ngIf="task.dueDate" class="due-date"
-                >📅 {{ task.dueDate | date: 'dd/MM/yyyy HH:mm' }}</span
-              >
+              <span *ngIf="task.dueDate" class="due-date">📅 {{ formatDate(task.dueDate) }}</span>
               <button (click)="toggleDetails(task.id)" class="btn-details">
                 {{ expandedTaskId === task.id ? '▲ Ocultar' : '▼ Ver más' }}
               </button>
@@ -187,15 +185,15 @@ import { TaskStats } from '../models/task-stats';
             <div *ngIf="expandedTaskId === task.id" class="task-details">
               <div class="detail-row">
                 <span class="detail-label">Creado:</span>
-                <span class="detail-value">{{ task.createdAt | date: 'dd/MM/yyyy HH:mm' }}</span>
+                <span class="detail-value">{{ formatDate(task.createdAt) }}</span>
               </div>
               <div *ngIf="task.completedAt" class="detail-row">
                 <span class="detail-label">Completado:</span>
-                <span class="detail-value">{{ task.completedAt | date: 'dd/MM/yyyy HH:mm' }}</span>
+                <span class="detail-value">{{ formatDate(task.completedAt) }}</span>
               </div>
               <div *ngIf="task.dueDate" class="detail-row">
                 <span class="detail-label">Fecha límite:</span>
-                <span class="detail-value">{{ task.dueDate | date: 'dd/MM/yyyy HH:mm' }}</span>
+                <span class="detail-value">{{ formatDate(task.dueDate) }}</span>
               </div>
               <div class="detail-row">
                 <span class="detail-label">Días restantes:</span>
@@ -852,5 +850,18 @@ export class TasksComponent implements OnInit {
   logout() {
     localStorage.removeItem('token');
     window.location.href = '/auth/login';
+  }
+
+  formatDate(dateStr: string): string {
+    if (!dateStr) return '';
+    const date = new Date(dateStr);
+    const options: Intl.DateTimeFormatOptions = {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    };
+    return date.toLocaleDateString('es-ES', options);
   }
 }
