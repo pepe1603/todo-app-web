@@ -55,4 +55,20 @@ export class TaskService {
   changeStatus(id: number, status: string): Observable<Task> {
     return this.http.patch<Task>(`${this.apiUrl}/${id}/status?status=${status}`, {});
   }
+
+  startTask(id: number): Observable<Task> {
+    return this.http.patch<Task>(`${this.apiUrl}/${id}/start`, {});
+  }
+
+  completeTask(id: number): Observable<Task> {
+    return this.http.patch<Task>(`${this.apiUrl}/${id}/complete`, {});
+  }
+
+  cancelTask(id: number): Observable<Task> {
+    return this.http.patch<Task>(`${this.apiUrl}/${id}/cancel`, {});
+  }
+
+  reopenTask(id: number): Observable<Task> {
+    return this.http.patch<Task>(`${this.apiUrl}/${id}/reopen`, {});
+  }
 }

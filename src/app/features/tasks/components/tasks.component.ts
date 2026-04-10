@@ -156,10 +156,42 @@ import { TaskStats } from '../models/task-stats';
             </div>
             <p>{{ task.description }}</p>
             <div class="task-meta">
-              <span class="status">{{ task.status }}</span>
+              <span class="status" [class]="'status-' + task.status.toLowerCase()">{{
+                task.status
+              }}</span>
               <span *ngIf="task.dueDate" class="due-date"
                 >📅 {{ task.dueDate | date: 'dd/MM/yyyy HH:mm' }}</span
               >
+            </div>
+            <div class="task-actions">
+              <button
+                *ngIf="task.status === 'PENDING'"
+                (click)="changeStatus(task.id, 'IN_PROGRESS')"
+                class="btn-action btn-start"
+              >
+                ▶ Iniciar
+              </button>
+              <button
+                *ngIf="task.status === 'PENDING' || task.status === 'IN_PROGRESS'"
+                (click)="changeStatus(task.id, 'COMPLETED')"
+                class="btn-action btn-complete"
+              >
+                ✓ Completar
+              </button>
+              <button
+                *ngIf="task.status === 'PENDING' || task.status === 'IN_PROGRESS'"
+                (click)="changeStatus(task.id, 'CANCELLED')"
+                class="btn-action btn-cancel-action"
+              >
+                ✕ Cancelar
+              </button>
+              <button
+                *ngIf="task.status === 'CANCELLED'"
+                (click)="changeStatus(task.id, 'PENDING')"
+                class="btn-action btn-reopen"
+              >
+                ↻ Reabrir
+              </button>
             </div>
           </div>
         </div>
@@ -355,6 +387,18 @@ import { TaskStats } from '../models/task-stats';
         border-radius: 4px;
         font-size: 0.8rem;
       }
+      .status-pending {
+        background: #f39c12;
+      }
+      .status-in_progress {
+        background: #3498db;
+      }
+      .status-completed {
+        background: #27ae60;
+      }
+      .status-cancelled {
+        background: #95a5a6;
+      }
       .error {
         color: red;
         padding: 0.5rem;
@@ -416,6 +460,35 @@ import { TaskStats } from '../models/task-stats';
         border: 1px solid #ddd;
         border-radius: 4px;
         font-size: 0.9rem;
+      }
+      .task-actions {
+        display: flex;
+        gap: 0.5rem;
+        margin-top: 0.75rem;
+        flex-wrap: wrap;
+      }
+      .btn-action {
+        padding: 0.25rem 0.75rem;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 0.8rem;
+        color: white;
+      }
+      .btn-start {
+        background: #3498db;
+      }
+      .btn-complete {
+        background: #27ae60;
+      }
+      .btn-cancel-action {
+        background: #95a5a6;
+      }
+      .btn-reopen {
+        background: #f39c12;
+      }
+      .btn-action:hover {
+        opacity: 0.9;
       }
     `,
   ],
@@ -548,6 +621,23 @@ export class TasksComponent implements OnInit {
     this.editingTaskId = null;
     this.editTask = { title: '', description: '', dueDate: '' };
     this.editError = '';
+  }
+
+  changeStatus(taskId: number, status: string) {
+    this.taskService.changeStatus(taskId, status).subscribe({
+      next: (updatedTask) => {
+        const index = this.tasks.findIndex((t) => t.id === taskId);
+        if (index !== -1) {
+          this.tasks[index] = updatedTask;
+        }
+        this.loadStats();
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        this.error = 'Error al cambiar estado: ' + (err.error?.message || err.message);
+        this.cdr.detectChanges();
+      },
+    });
   }
 
   logout() {
