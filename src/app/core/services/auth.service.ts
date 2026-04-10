@@ -49,9 +49,7 @@ export class AuthService {
   }
 
   resendOtp(email: string): Observable<string> {
-    return this.http.post<string>(`${this.apiUrl}/resend-otp`, `"${email}"`, {
-      headers: { 'Content-Type': 'application/json' }
-    });
+    return this.http.post<string>(`${this.apiUrl}/resend-otp`, { email });
   }
 
   login(data: LoginRequest): Observable<AuthResponse> {
