@@ -178,6 +178,40 @@ import { TaskStats } from '../models/task-stats';
               <span *ngIf="task.dueDate" class="due-date"
                 >📅 {{ task.dueDate | date: 'dd/MM/yyyy HH:mm' }}</span
               >
+              <button (click)="toggleDetails(task.id)" class="btn-details">
+                {{ expandedTaskId === task.id ? '▲ Ocultar' : '▼ Ver más' }}
+              </button>
+            </div>
+
+            <!-- Accordion Details -->
+            <div *ngIf="expandedTaskId === task.id" class="task-details">
+              <div class="detail-row">
+                <span class="detail-label">Creado:</span>
+                <span class="detail-value">{{ task.createdAt | date: 'dd/MM/yyyy HH:mm' }}</span>
+              </div>
+              <div *ngIf="task.completedAt" class="detail-row">
+                <span class="detail-label">Completado:</span>
+                <span class="detail-value">{{ task.completedAt | date: 'dd/MM/yyyy HH:mm' }}</span>
+              </div>
+              <div *ngIf="task.dueDate" class="detail-row">
+                <span class="detail-label">Fecha límite:</span>
+                <span class="detail-value">{{ task.dueDate | date: 'dd/MM/yyyy HH:mm' }}</span>
+              </div>
+              <div class="detail-row">
+                <span class="detail-label">Días restantes:</span>
+                <span
+                  class="detail-value"
+                  [class.overdue]="isOverdue(task)"
+                  [class.remaining]="!isOverdue(task) && getDaysRemaining(task) > 0"
+                >
+                  <span *ngIf="isOverdue(task)">⚠️ Vencida ({{ getDaysOverdue(task) }} días)</span>
+                  <span *ngIf="!isOverdue(task) && getDaysRemaining(task) > 0"
+                    >✓ {{ getDaysRemaining(task) }} días</span
+                  >
+                  <span *ngIf="!isOverdue(task) && getDaysRemaining(task) === 0">Hoy</span>
+                  <span *ngIf="task.status === 'COMPLETED'">-</span>
+                </span>
+              </div>
             </div>
             <div class="task-actions">
               <button
@@ -565,6 +599,45 @@ import { TaskStats } from '../models/task-stats';
         border-radius: 5px;
         cursor: pointer;
       }
+      .btn-details {
+        background: none;
+        border: none;
+        color: #667eea;
+        cursor: pointer;
+        font-size: 0.8rem;
+        text-decoration: underline;
+        margin-left: auto;
+      }
+      .task-details {
+        background: #f8f9fa;
+        padding: 1rem;
+        border-radius: 8px;
+        margin-top: 0.75rem;
+      }
+      .detail-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 0.5rem 0;
+        border-bottom: 1px solid #eee;
+      }
+      .detail-row:last-child {
+        border-bottom: none;
+      }
+      .detail-label {
+        color: #666;
+        font-weight: 500;
+      }
+      .detail-value {
+        color: #333;
+      }
+      .detail-value.overdue {
+        color: #e74c3c;
+        font-weight: 500;
+      }
+      .detail-value.remaining {
+        color: #27ae60;
+        font-weight: 500;
+      }
     `,
   ],
 })
@@ -586,6 +659,8 @@ export class TasksComponent implements OnInit {
   editTask: UpdateTaskRequest = { title: '', description: '', dueDate: '' };
   saving = false;
   editError = '';
+
+  expandedTaskId: number | null = null;
 
   showDeleteConfirm = false;
   deleteTaskId: number | null = null;
@@ -749,6 +824,29 @@ export class TasksComponent implements OnInit {
     this.showDeleteConfirm = false;
     this.deleteTaskId = null;
     this.deleteTaskTitle = '';
+  }
+
+  toggleDetails(taskId: number) {
+    this.expandedTaskId = this.expandedTaskId === taskId ? null : taskId;
+  }
+
+  getDaysRemaining(task: Task): number {
+    if (!task.dueDate || task.status === 'COMPLETED') return 0;
+    const dueDate = new Date(task.dueDate);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    dueDate.setHours(0, 0, 0, 0);
+    const diffTime = dueDate.getTime() - today.getTime();
+    return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  }
+
+  isOverdue(task: Task): boolean {
+    if (!task.dueDate || task.status === 'COMPLETED') return false;
+    return this.getDaysRemaining(task) < 0;
+  }
+
+  getDaysOverdue(task: Task): number {
+    return Math.abs(this.getDaysRemaining(task));
   }
 
   logout() {
