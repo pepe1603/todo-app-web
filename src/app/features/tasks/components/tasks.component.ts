@@ -15,249 +15,228 @@ import { TaskStats } from '../models/task-stats';
   imports: [CommonModule, FormsModule],
   template: `
     <div class="tasks-container">
-      <header>
-        <h1>Mis Tareas</h1>
-        <button (click)="logout()">Cerrar Sesión</button>
+      <header class="app-header">
+        <div class="header-left">
+          <h1>📋 Mis Tareas</h1>
+        </div>
+        <button (click)="logout()" class="btn-logout"><span>🚪</span> Cerrar Sesión</button>
       </header>
 
       <div *ngIf="stats" class="stats-section">
-        <h2>Resumen de Tareas</h2>
+        <div class="stats-header">
+          <h2>📊 Resumen de Tareas</h2>
+          <span class="completion-badge">{{ stats.completionRate }}% completado</span>
+        </div>
         <div class="stats-grid">
           <div class="stat-card total">
+            <span class="stat-icon">📁</span>
             <span class="stat-value">{{ stats.total }}</span>
             <span class="stat-label">Total</span>
           </div>
           <div class="stat-card pending">
+            <span class="stat-icon">⏳</span>
             <span class="stat-value">{{ stats.pending }}</span>
             <span class="stat-label">Pendientes</span>
           </div>
           <div class="stat-card in-progress">
+            <span class="stat-icon">🔄</span>
             <span class="stat-value">{{ stats.inProgress }}</span>
             <span class="stat-label">En Progreso</span>
           </div>
           <div class="stat-card completed">
+            <span class="stat-icon">✅</span>
             <span class="stat-value">{{ stats.completed }}</span>
             <span class="stat-label">Completadas</span>
           </div>
           <div class="stat-card cancelled">
+            <span class="stat-icon">❌</span>
             <span class="stat-value">{{ stats.cancelled }}</span>
             <span class="stat-label">Canceladas</span>
           </div>
-          <div class="stat-card overdue">
+          <div class="stat-card overdue" *ngIf="stats.overdue > 0">
+            <span class="stat-icon">⚠️</span>
             <span class="stat-value">{{ stats.overdue }}</span>
             <span class="stat-label">Vencidas</span>
           </div>
         </div>
-        <div class="completion-rate">
-          <span>Tasa de Completado: {{ stats.completionRate }}%</span>
+        <div class="progress-container">
           <div class="progress-bar">
             <div class="progress-fill" [style.width.%]="stats.completionRate"></div>
           </div>
         </div>
       </div>
 
-      <!-- Filters -->
-      <div class="filters-section">
-        <span class="filter-label">Filtrar por:</span>
-        <div class="filter-buttons">
-          <button
-            type="button"
-            (click)="filterByStatus('ALL')"
-            [class.active]="statusFilter === 'ALL'"
-            class="filter-btn"
-          >
-            Todas
-          </button>
-          <button
-            type="button"
-            (click)="filterByStatus('PENDING')"
-            [class.active]="statusFilter === 'PENDING'"
-            class="filter-btn"
-          >
-            Pendientes
-          </button>
-          <button
-            type="button"
-            (click)="filterByStatus('IN_PROGRESS')"
-            [class.active]="statusFilter === 'IN_PROGRESS'"
-            class="filter-btn"
-          >
-            En Progreso
-          </button>
-          <button
-            type="button"
-            (click)="filterByStatus('COMPLETED')"
-            [class.active]="statusFilter === 'COMPLETED'"
-            class="filter-btn"
-          >
-            Completadas
-          </button>
-          <button
-            type="button"
-            (click)="filterByStatus('CANCELLED')"
-            [class.active]="statusFilter === 'CANCELLED'"
-            class="filter-btn"
-          >
-            Canceladas
-          </button>
+      <div class="controls-section">
+        <div class="filters-section">
+          <span class="filter-label">🔍 Filtrar:</span>
+          <div class="filter-buttons">
+            <button
+              type="button"
+              (click)="filterByStatus('ALL')"
+              [class.active]="statusFilter === 'ALL'"
+              class="filter-btn"
+            >
+              Todas
+            </button>
+            <button
+              type="button"
+              (click)="filterByStatus('PENDING')"
+              [class.active]="statusFilter === 'PENDING'"
+              class="filter-btn"
+            >
+              Pendientes
+            </button>
+            <button
+              type="button"
+              (click)="filterByStatus('IN_PROGRESS')"
+              [class.active]="statusFilter === 'IN_PROGRESS'"
+              class="filter-btn"
+            >
+              En Progreso
+            </button>
+            <button
+              type="button"
+              (click)="filterByStatus('COMPLETED')"
+              [class.active]="statusFilter === 'COMPLETED'"
+              class="filter-btn"
+            >
+              Completadas
+            </button>
+            <button
+              type="button"
+              (click)="filterByStatus('CANCELLED')"
+              [class.active]="statusFilter === 'CANCELLED'"
+              class="filter-btn"
+            >
+              Canceladas
+            </button>
+          </div>
         </div>
-      </div>
-
-      <div class="create-task-section">
         <button *ngIf="!showCreateForm" (click)="showCreateForm = true" class="btn-create">
-          + Nueva Tarea
+          ➕ Nueva Tarea
         </button>
       </div>
 
-      <div *ngIf="showCreateForm" class="create-form">
-        <h3>Crear Nueva Tarea</h3>
+      <div *ngIf="showCreateForm" class="form-card create-form">
+        <div class="form-header">
+          <h3>✨ Crear Nueva Tarea</h3>
+          <button (click)="cancelCreate()" class="btn-close">✕</button>
+        </div>
         <form (ngSubmit)="createTask()">
-          <div class="form-group">
-            <label for="title">Título</label>
-            <input
-              type="text"
-              id="title"
-              [(ngModel)]="newTask.title"
-              name="title"
-              required
-              placeholder="Título de la tarea"
-            />
+          <div class="form-row">
+            <div class="form-group">
+              <label for="title">📝 Título</label>
+              <input
+                type="text"
+                id="title"
+                [(ngModel)]="newTask.title"
+                name="title"
+                required
+                placeholder="¿Qué necesitas hacer?"
+                class="form-input"
+              />
+            </div>
           </div>
-          <div class="form-group">
-            <label for="description">Descripción</label>
-            <textarea
-              id="description"
-              [(ngModel)]="newTask.description"
-              name="description"
-              placeholder="Descripción de la tarea"
-              rows="3"
-            ></textarea>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="description">📋 Descripción</label>
+              <textarea
+                id="description"
+                [(ngModel)]="newTask.description"
+                name="description"
+                placeholder="Agrega más detalles..."
+                rows="2"
+                class="form-input"
+              ></textarea>
+            </div>
           </div>
-          <div class="form-group">
-            <label for="dueDate">Fecha límite</label>
-            <input
-              type="datetime-local"
-              id="dueDate"
-              [(ngModel)]="newTask.dueDate"
-              name="dueDate"
-            />
+          <div class="form-row">
+            <div class="form-group">
+              <label for="dueDate">📅 Fecha límite</label>
+              <input
+                type="datetime-local"
+                id="dueDate"
+                [(ngModel)]="newTask.dueDate"
+                name="dueDate"
+                class="form-input"
+              />
+            </div>
           </div>
+          <div *ngIf="createError" class="form-error">{{ createError }}</div>
           <div class="form-actions">
-            <button type="submit" [disabled]="creating" class="btn-submit">
-              {{ creating ? 'Creando...' : 'Crear Tarea' }}
+            <button type="submit" [disabled]="creating" class="btn-primary">
+              {{ creating ? '⏳ Creando...' : '✅ Crear Tarea' }}
             </button>
-            <button type="button" (click)="cancelCreate()" class="btn-cancel">Cancelar</button>
+            <button type="button" (click)="cancelCreate()" class="btn-secondary">Cancelar</button>
           </div>
-          <div *ngIf="createError" class="error">{{ createError }}</div>
         </form>
       </div>
 
-      <div *ngIf="loading">Cargando...</div>
-      <div *ngIf="error" class="error">{{ error }}</div>
-
-      <!-- Delete Confirmation Modal -->
-      <div *ngIf="showDeleteConfirm" class="modal-overlay">
-        <div class="modal-content">
-          <h3>Confirmar eliminación</h3>
-          <p>
-            ¿Estás seguro de que deseas eliminar la tarea "<strong>{{ deleteTaskTitle }}</strong
-            >"?
-          </p>
-          <p class="warning">Esta acción no se puede deshacer.</p>
-          <div class="modal-actions">
-            <button (click)="deleteTask()" class="btn-danger">Eliminar</button>
-            <button (click)="cancelDelete()" class="btn-cancel-modal">Cancelar</button>
-          </div>
-        </div>
+      <div *ngIf="loading" class="loading-state">
+        <div class="spinner"></div>
+        <p>Cargando tus tareas...</p>
       </div>
+
+      <div *ngIf="error" class="error-banner">{{ error }}</div>
 
       <div class="tasks-list">
         <div
           *ngFor="let task of filteredTasks"
           class="task-card"
           [class.completed]="task.status === 'COMPLETED'"
+          [class.cancelled]="task.status === 'CANCELLED'"
         >
-          <!-- Edit Form -->
           <div *ngIf="editingTaskId === task.id" class="edit-form">
-            <h3>Editar Tarea</h3>
-            <div class="form-group">
-              <label for="editTitle">Título</label>
-              <input type="text" id="editTitle" [(ngModel)]="editTask.title" name="editTitle" />
+            <div class="form-header">
+              <h3>✏️ Editar Tarea</h3>
+              <button (click)="cancelEdit()" class="btn-close">✕</button>
             </div>
             <div class="form-group">
-              <label for="editDescription">Descripción</label>
-              <textarea
-                id="editDescription"
-                [(ngModel)]="editTask.description"
-                name="editDescription"
-                rows="2"
-              ></textarea>
+              <label>📝 Título</label>
+              <input type="text" [(ngModel)]="editTask.title" class="form-input" />
             </div>
             <div class="form-group">
-              <label for="editDueDate">Fecha límite</label>
-              <input
-                type="datetime-local"
-                id="editDueDate"
-                [(ngModel)]="editTask.dueDate"
-                name="editDueDate"
-              />
+              <label>📋 Descripción</label>
+              <textarea [(ngModel)]="editTask.description" rows="2" class="form-input"></textarea>
             </div>
+            <div class="form-group">
+              <label>📅 Fecha límite</label>
+              <input type="datetime-local" [(ngModel)]="editTask.dueDate" class="form-input" />
+            </div>
+            <div *ngIf="editError" class="form-error">{{ editError }}</div>
             <div class="form-actions">
-              <button (click)="saveEdit(task.id)" [disabled]="saving" class="btn-submit">
-                {{ saving ? 'Guardando...' : 'Guardar' }}
+              <button (click)="saveEdit(task.id)" [disabled]="saving" class="btn-primary">
+                {{ saving ? '⏳' : '✅' }} Guardar
               </button>
-              <button (click)="cancelEdit()" class="btn-cancel">Cancelar</button>
+              <button (click)="cancelEdit()" class="btn-secondary">Cancelar</button>
             </div>
-            <div *ngIf="editError" class="error">{{ editError }}</div>
           </div>
 
-          <!-- Task Display -->
-          <div *ngIf="editingTaskId !== task.id">
+          <div *ngIf="editingTaskId !== task.id" class="task-content">
             <div class="task-header">
-              <h3>{{ task.title }}</h3>
-              <button (click)="startEdit(task)" class="btn-edit">Editar</button>
-            </div>
-            <p>{{ task.description }}</p>
-            <div class="task-meta">
-              <span class="status" [class]="'status-' + task.status.toLowerCase()">{{
-                task.status
-              }}</span>
-              <span *ngIf="task.dueDate" class="due-date">📅 {{ formatDate(task.dueDate) }}</span>
-              <button (click)="toggleDetails(task.id)" class="btn-details">
-                {{ expandedTaskId === task.id ? '▲ Ocultar' : '▼ Ver más' }}
-              </button>
+              <div class="task-title-section">
+                <span class="status-badge" [class]="'status-' + task.status.toLowerCase()">{{
+                  getStatusLabel(task.status)
+                }}</span>
+                <h3 class="task-title">{{ task.title }}</h3>
+              </div>
+              <div class="task-actions-header">
+                <button (click)="startEdit(task)" class="btn-icon" title="Editar">✏️</button>
+              </div>
             </div>
 
-            <!-- Accordion Details -->
-            <div *ngIf="expandedTaskId === task.id" class="task-details">
-              <div class="detail-row">
-                <span class="detail-label">Creado:</span>
-                <span class="detail-value">{{ formatDate(task.createdAt) }}</span>
-              </div>
-              <div *ngIf="task.completedAt" class="detail-row">
-                <span class="detail-label">Completado:</span>
-                <span class="detail-value">{{ formatDate(task.completedAt) }}</span>
-              </div>
-              <div *ngIf="task.dueDate" class="detail-row">
-                <span class="detail-label">Fecha límite:</span>
-                <span class="detail-value">{{ formatDate(task.dueDate) }}</span>
-              </div>
-              <div class="detail-row">
-                <span class="detail-label">Días restantes:</span>
-                <span
-                  class="detail-value"
-                  [class.overdue]="isOverdue(task)"
-                  [class.remaining]="!isOverdue(task) && getDaysRemaining(task) > 0"
+            <p *ngIf="task.description" class="task-description">{{ task.description }}</p>
+
+            <div class="task-meta">
+              <span *ngIf="task.dueDate" class="meta-item" [class.overdue]="isOverdue(task)">
+                📅 {{ formatDate(task.dueDate) }}
+                <span *ngIf="isOverdue(task)" class="overdue-badge">Vencida</span>
+                <span *ngIf="!isOverdue(task) && getDaysRemaining(task) > 0" class="days-badge"
+                  >{{ getDaysRemaining(task) }} días</span
                 >
-                  <span *ngIf="isOverdue(task)">⚠️ Vencida ({{ getDaysOverdue(task) }} días)</span>
-                  <span *ngIf="!isOverdue(task) && getDaysRemaining(task) > 0"
-                    >✓ {{ getDaysRemaining(task) }} días</span
-                  >
-                  <span *ngIf="!isOverdue(task) && getDaysRemaining(task) === 0">Hoy</span>
-                  <span *ngIf="task.status === 'COMPLETED'">-</span>
-                </span>
-              </div>
+              </span>
             </div>
+
             <div class="task-actions">
               <button
                 *ngIf="task.status === 'PENDING'"
@@ -287,131 +266,227 @@ import { TaskStats } from '../models/task-stats';
               >
                 ↻ Reabrir
               </button>
-              <button (click)="confirmDelete(task.id, task.title)" class="btn-action btn-delete">
-                🗑 Eliminar
+              <button
+                (click)="confirmDelete(task.id, task.title)"
+                class="btn-action btn-delete"
+                title="Eliminar"
+              >
+                🗑️
               </button>
+            </div>
+
+            <button (click)="toggleDetails(task.id)" class="btn-details">
+              {{ expandedTaskId === task.id ? '▲ Ocultar detalles' : '▼ Ver más detalles' }}
+            </button>
+
+            <div *ngIf="expandedTaskId === task.id" class="task-details">
+              <div class="detail-grid">
+                <div class="detail-item">
+                  <span class="detail-label">📅 Creado</span>
+                  <span class="detail-value">{{ formatDate(task.createdAt) }}</span>
+                </div>
+                <div *ngIf="task.completedAt" class="detail-item">
+                  <span class="detail-label">✅ Completado</span>
+                  <span class="detail-value">{{ formatDate(task.completedAt) }}</span>
+                </div>
+                <div *ngIf="task.dueDate" class="detail-item">
+                  <span class="detail-label">⏰ Fecha límite</span>
+                  <span class="detail-value" [class.overdue]="isOverdue(task)">{{
+                    formatDate(task.dueDate)
+                  }}</span>
+                </div>
+                <div class="detail-item">
+                  <span class="detail-label">📊 Estado</span>
+                  <span class="detail-value">{{ getStatusLabel(task.status) }}</span>
+                </div>
+              </div>
             </div>
           </div>
         </div>
-        <div *ngIf="tasks.length === 0 && !loading" class="no-tasks">No hay tareas. ¡Crea una!</div>
+
+        <div *ngIf="filteredTasks.length === 0 && !loading" class="empty-state">
+          <div class="empty-icon">📭</div>
+          <h3>No hay tareas</h3>
+          <p>¡Crea una nueva tarea para comenzar!</p>
+        </div>
+      </div>
+
+      <div *ngIf="showDeleteConfirm" class="modal-overlay">
+        <div class="modal-content">
+          <div class="modal-icon">🗑️</div>
+          <h3>Confirmar eliminación</h3>
+          <p>
+            ¿Estás seguro de eliminar "<strong>{{ deleteTaskTitle }}</strong
+            >"?
+          </p>
+          <p class="warning">⚠️ Esta acción no se puede deshacer.</p>
+          <div class="modal-actions">
+            <button (click)="deleteTask()" class="btn-danger">Eliminar</button>
+            <button (click)="cancelDelete()" class="btn-cancel-modal">Cancelar</button>
+          </div>
+        </div>
       </div>
     </div>
   `,
   styles: [
     `
+      :host {
+        --primary: #667eea;
+        --primary-dark: #5568d3;
+        --secondary: #764ba2;
+        --success: #27ae60;
+        --warning: #f39c12;
+        --danger: #e74c3c;
+        --info: #3498db;
+        --grey: #95a5a6;
+        --dark: #2c3e50;
+        --light: #ecf0f1;
+        --bg: #f5f7fa;
+        --card-bg: #ffffff;
+        display: block;
+      }
       .tasks-container {
-        padding: 2rem;
+        padding: 1.5rem;
         max-width: 1200px;
         margin: 0 auto;
+        background: var(--bg);
+        min-height: 100vh;
       }
-      header {
+      .app-header {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        margin-bottom: 2rem;
-      }
-      header h1 {
-        color: #333;
-        margin: 0;
-      }
-      header button {
-        padding: 0.5rem 1rem;
-        background: #e74c3c;
+        margin-bottom: 1.5rem;
+        background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+        padding: 1.25rem 1.5rem;
+        border-radius: 12px;
         color: white;
-        border: none;
-        border-radius: 4px;
+      }
+      .app-header h1 {
+        margin: 0;
+        font-size: 1.5rem;
+      }
+      .btn-logout {
+        background: rgba(255, 255, 255, 0.2);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        color: white;
+        padding: 0.5rem 1rem;
+        border-radius: 8px;
         cursor: pointer;
+        transition: all 0.2s;
+      }
+      .btn-logout:hover {
+        background: rgba(255, 255, 255, 0.3);
       }
       .stats-section {
-        background: #f8f9fa;
+        background: var(--card-bg);
+        border-radius: 12px;
         padding: 1.5rem;
-        border-radius: 10px;
-        margin-bottom: 2rem;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
       }
-      .stats-section h2 {
-        margin: 0 0 1rem 0;
-        color: #333;
-        font-size: 1.25rem;
+      .stats-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+      }
+      .stats-header h2 {
+        margin: 0;
+        color: var(--dark);
+        font-size: 1.1rem;
+      }
+      .completion-badge {
+        background: linear-gradient(135deg, var(--success) 0%, #2ecc71 100%);
+        color: white;
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 500;
       }
       .stats-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-        gap: 1rem;
-        margin-bottom: 1.5rem;
+        grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+        gap: 0.75rem;
+        margin-bottom: 1rem;
       }
       .stat-card {
-        background: white;
+        background: var(--bg);
         padding: 1rem;
-        border-radius: 8px;
+        border-radius: 10px;
         text-align: center;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        transition: transform 0.2s;
+      }
+      .stat-card:hover {
+        transform: translateY(-2px);
+      }
+      .stat-card .stat-icon {
+        display: block;
+        font-size: 1.5rem;
+        margin-bottom: 0.25rem;
       }
       .stat-card .stat-value {
         display: block;
-        font-size: 2rem;
-        font-weight: bold;
-        color: #333;
+        font-size: 1.75rem;
+        font-weight: 700;
+        color: var(--dark);
       }
       .stat-card .stat-label {
         display: block;
-        font-size: 0.875rem;
-        color: #666;
+        font-size: 0.75rem;
+        color: var(--grey);
         margin-top: 0.25rem;
       }
       .stat-card.total {
-        border-left: 4px solid #667eea;
+        border-left: 3px solid var(--primary);
       }
       .stat-card.pending {
-        border-left: 4px solid #f39c12;
+        border-left: 3px solid var(--warning);
       }
       .stat-card.in-progress {
-        border-left: 4px solid #3498db;
+        border-left: 3px solid var(--info);
       }
       .stat-card.completed {
-        border-left: 4px solid #27ae60;
+        border-left: 3px solid var(--success);
       }
       .stat-card.cancelled {
-        border-left: 4px solid #95a5a6;
+        border-left: 3px solid var(--grey);
       }
       .stat-card.overdue {
-        border-left: 4px solid #e74c3c;
+        border-left: 3px solid var(--danger);
       }
-      .completion-rate {
-        background: white;
-        padding: 1rem;
-        border-radius: 8px;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-      }
-      .completion-rate span {
-        display: block;
-        margin-bottom: 0.5rem;
-        font-weight: 500;
-        color: #333;
+      .progress-container {
+        margin-top: 0.5rem;
       }
       .progress-bar {
-        height: 20px;
-        background: #e9ecef;
-        border-radius: 10px;
+        height: 8px;
+        background: var(--light);
+        border-radius: 4px;
         overflow: hidden;
       }
       .progress-fill {
         height: 100%;
-        background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
-        transition: width 0.3s ease;
+        background: linear-gradient(90deg, var(--primary) 0%, var(--secondary) 100%);
+        border-radius: 4px;
+        transition: width 0.5s ease;
       }
-      .create-task-section {
-        margin-bottom: 1.5rem;
+      .controls-section {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+        flex-wrap: wrap;
+        gap: 1rem;
       }
       .filters-section {
         display: flex;
         align-items: center;
-        gap: 1rem;
-        margin-bottom: 1.5rem;
+        gap: 0.75rem;
         flex-wrap: wrap;
       }
       .filter-label {
         font-weight: 500;
-        color: #333;
+        color: var(--dark);
       }
       .filter-buttons {
         display: flex;
@@ -419,213 +494,385 @@ import { TaskStats } from '../models/task-stats';
         flex-wrap: wrap;
       }
       .filter-btn {
-        padding: 0.5rem 1rem;
-        background: white;
-        border: 1px solid #ddd;
+        padding: 0.4rem 0.8rem;
+        background: var(--card-bg);
+        border: 1px solid #e0e0e0;
         border-radius: 20px;
         cursor: pointer;
-        font-size: 0.875rem;
-        color: #666;
+        font-size: 0.8rem;
+        color: var(--grey);
         transition: all 0.2s;
       }
       .filter-btn:hover {
-        border-color: #667eea;
-        color: #667eea;
+        border-color: var(--primary);
+        color: var(--primary);
       }
       .filter-btn.active {
-        background: #667eea;
+        background: var(--primary);
         color: white;
-        border-color: #667eea;
+        border-color: var(--primary);
       }
       .btn-create {
-        padding: 0.75rem 1.5rem;
-        background: #27ae60;
+        background: linear-gradient(135deg, var(--success) 0%, #2ecc71 100%);
         color: white;
         border: none;
-        border-radius: 5px;
-        font-size: 1rem;
-        cursor: pointer;
-      }
-      .create-form {
-        background: #f8f9fa;
-        padding: 1.5rem;
+        padding: 0.6rem 1.2rem;
         border-radius: 8px;
-        margin-bottom: 1.5rem;
+        cursor: pointer;
+        font-weight: 500;
+        transition: all 0.2s;
+        box-shadow: 0 2px 8px rgba(39, 174, 96, 0.3);
       }
-      .create-form h3 {
-        margin: 0 0 1rem 0;
-        color: #333;
+      .btn-create:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(39, 174, 96, 0.4);
+      }
+      .form-card {
+        background: var(--card-bg);
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        animation: slideDown 0.3s ease;
+      }
+      @keyframes slideDown {
+        from {
+          opacity: 0;
+          transform: translateY(-10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      .form-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+      }
+      .form-header h3 {
+        margin: 0;
+        color: var(--dark);
+      }
+      .btn-close {
+        background: none;
+        border: none;
+        font-size: 1.25rem;
+        cursor: pointer;
+        color: var(--grey);
+      }
+      .form-row {
+        margin-bottom: 1rem;
       }
       .form-group {
-        margin-bottom: 1rem;
+        margin-bottom: 0.75rem;
       }
       .form-group label {
         display: block;
-        margin-bottom: 0.5rem;
-        color: #555;
+        margin-bottom: 0.35rem;
+        color: var(--dark);
         font-weight: 500;
+        font-size: 0.9rem;
       }
-      .form-group input,
-      .form-group textarea {
+      .form-input {
         width: 100%;
-        padding: 0.75rem;
-        border: 1px solid #ddd;
-        border-radius: 5px;
-        font-size: 1rem;
-        font-family: inherit;
+        padding: 0.6rem 0.75rem;
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        font-size: 0.95rem;
+        transition: border-color 0.2s;
+        box-sizing: border-box;
       }
-      .form-group input:focus,
-      .form-group textarea:focus {
+      .form-input:focus {
         outline: none;
-        border-color: #667eea;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+      }
+      .form-error {
+        color: var(--danger);
+        font-size: 0.85rem;
+        margin-top: 0.5rem;
       }
       .form-actions {
         display: flex;
+        gap: 0.75rem;
+        margin-top: 1rem;
+      }
+      .btn-primary {
+        background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+        color: white;
+        border: none;
+        padding: 0.6rem 1.25rem;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: 500;
+        transition: all 0.2s;
+      }
+      .btn-primary:hover {
+        opacity: 0.9;
+      }
+      .btn-primary:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+      }
+      .btn-secondary {
+        background: var(--light);
+        color: var(--dark);
+        border: 1px solid #d0d0d0;
+        padding: 0.6rem 1.25rem;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.2s;
+      }
+      .btn-secondary:hover {
+        background: #dfe4ea;
+      }
+      .loading-state {
+        text-align: center;
+        padding: 3rem;
+        color: var(--grey);
+      }
+      .spinner {
+        width: 40px;
+        height: 40px;
+        border: 3px solid var(--light);
+        border-top-color: var(--primary);
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin: 0 auto 1rem;
+      }
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+      .error-banner {
+        background: #fee;
+        color: var(--danger);
+        padding: 1rem;
+        border-radius: 8px;
+        margin-bottom: 1rem;
+        border-left: 4px solid var(--danger);
+      }
+      .tasks-list {
+        display: flex;
+        flex-direction: column;
         gap: 1rem;
       }
-      .btn-submit {
-        padding: 0.75rem 1.5rem;
-        background: #667eea;
-        color: white;
-        border: none;
-        border-radius: 5px;
-        font-size: 1rem;
-        cursor: pointer;
-      }
-      .btn-submit:disabled {
-        background: #ccc;
-      }
-      .btn-cancel {
-        padding: 0.75rem 1.5rem;
-        background: #95a5a6;
-        color: white;
-        border: none;
-        border-radius: 5px;
-        font-size: 1rem;
-        cursor: pointer;
-      }
       .task-card {
-        border: 1px solid #ddd;
-        padding: 1rem;
-        margin-bottom: 1rem;
-        border-radius: 8px;
+        background: var(--card-bg);
+        border-radius: 12px;
+        padding: 1.25rem;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+        transition: all 0.2s;
+        border-left: 4px solid var(--primary);
+      }
+      .task-card:hover {
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+        transform: translateY(-1px);
       }
       .task-card.completed {
-        background: #f0f8f0;
+        border-left-color: var(--success);
+        opacity: 0.85;
       }
-      .status {
-        background: #667eea;
-        color: white;
-        padding: 0.25rem 0.5rem;
-        border-radius: 4px;
-        font-size: 0.8rem;
+      .task-card.cancelled {
+        border-left-color: var(--grey);
+        opacity: 0.7;
       }
-      .status-pending {
-        background: #f39c12;
+      .task-content {
+        animation: fadeIn 0.3s ease;
       }
-      .status-in_progress {
-        background: #3498db;
-      }
-      .status-completed {
-        background: #27ae60;
-      }
-      .status-cancelled {
-        background: #95a5a6;
-      }
-      .error {
-        color: red;
-        padding: 0.5rem;
-        background: #fee;
-        border-radius: 4px;
-        margin-top: 0.5rem;
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+        }
+        to {
+          opacity: 1;
+        }
       }
       .task-header {
         display: flex;
         justify-content: space-between;
-        align-items: center;
+        align-items: flex-start;
+        margin-bottom: 0.75rem;
       }
-      .task-header h3 {
+      .task-title-section {
+        flex: 1;
+      }
+      .status-badge {
+        display: inline-block;
+        padding: 0.2rem 0.6rem;
+        border-radius: 12px;
+        font-size: 0.7rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        margin-bottom: 0.35rem;
+      }
+      .status-pending {
+        background: #fef5e7;
+        color: var(--warning);
+      }
+      .status-in_progress {
+        background: #ebf5fb;
+        color: var(--info);
+      }
+      .status-completed {
+        background: #e8f8f0;
+        color: var(--success);
+      }
+      .status-cancelled {
+        background: #f4f4f4;
+        color: var(--grey);
+      }
+      .task-title {
         margin: 0;
-        color: #333;
+        color: var(--dark);
+        font-size: 1.1rem;
       }
-      .btn-edit {
-        padding: 0.25rem 0.75rem;
-        background: #3498db;
-        color: white;
+      .task-actions-header {
+        display: flex;
+        gap: 0.5rem;
+      }
+      .btn-icon {
+        background: none;
         border: none;
-        border-radius: 4px;
         cursor: pointer;
-        font-size: 0.875rem;
+        font-size: 1.1rem;
+        padding: 0.25rem;
+        opacity: 0.6;
+        transition: opacity 0.2s;
+      }
+      .btn-icon:hover {
+        opacity: 1;
+      }
+      .task-description {
+        color: #666;
+        margin: 0 0 0.75rem 0;
+        font-size: 0.95rem;
+        line-height: 1.5;
       }
       .task-meta {
         display: flex;
         gap: 1rem;
-        align-items: center;
-        margin-top: 0.5rem;
-      }
-      .due-date {
-        color: #666;
-        font-size: 0.875rem;
-      }
-      .edit-form {
-        background: #fff3cd;
-        padding: 1rem;
-        border-radius: 8px;
-      }
-      .edit-form h3 {
-        margin: 0 0 1rem 0;
-        color: #333;
-      }
-      .edit-form .form-group {
+        flex-wrap: wrap;
         margin-bottom: 0.75rem;
       }
-      .edit-form .form-group label {
-        display: block;
-        margin-bottom: 0.25rem;
-        color: #555;
-        font-weight: 500;
-        font-size: 0.875rem;
+      .meta-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: #888;
+        font-size: 0.85rem;
       }
-      .edit-form .form-group input,
-      .edit-form .form-group textarea {
-        width: 100%;
-        padding: 0.5rem;
-        border: 1px solid #ddd;
-        border-radius: 4px;
-        font-size: 0.9rem;
+      .meta-item.overdue {
+        color: var(--danger);
+      }
+      .overdue-badge {
+        background: var(--danger);
+        color: white;
+        padding: 0.1rem 0.4rem;
+        border-radius: 10px;
+        font-size: 0.7rem;
+      }
+      .days-badge {
+        background: var(--success);
+        color: white;
+        padding: 0.1rem 0.4rem;
+        border-radius: 10px;
+        font-size: 0.7rem;
       }
       .task-actions {
         display: flex;
         gap: 0.5rem;
-        margin-top: 0.75rem;
         flex-wrap: wrap;
+        margin-bottom: 0.75rem;
       }
       .btn-action {
-        padding: 0.25rem 0.75rem;
+        padding: 0.35rem 0.75rem;
         border: none;
-        border-radius: 4px;
+        border-radius: 6px;
         cursor: pointer;
         font-size: 0.8rem;
         color: white;
-      }
-      .btn-start {
-        background: #3498db;
-      }
-      .btn-complete {
-        background: #27ae60;
-      }
-      .btn-cancel-action {
-        background: #95a5a6;
-      }
-      .btn-reopen {
-        background: #f39c12;
-      }
-      .btn-delete {
-        background: #e74c3c;
-        margin-left: auto;
+        transition: all 0.2s;
       }
       .btn-action:hover {
         opacity: 0.9;
+        transform: scale(1.02);
+      }
+      .btn-start {
+        background: var(--info);
+      }
+      .btn-complete {
+        background: var(--success);
+      }
+      .btn-cancel-action {
+        background: var(--grey);
+      }
+      .btn-reopen {
+        background: var(--warning);
+      }
+      .btn-delete {
+        background: var(--danger);
+        margin-left: auto;
+      }
+      .btn-details {
+        background: none;
+        border: none;
+        color: var(--primary);
+        cursor: pointer;
+        font-size: 0.8rem;
+        text-decoration: underline;
+        padding: 0;
+      }
+      .task-details {
+        background: #f8f9fa;
+        padding: 1rem;
+        border-radius: 8px;
+        margin-top: 0.75rem;
+        animation: slideDown 0.3s ease;
+      }
+      .detail-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 0.75rem;
+      }
+      .detail-item {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+      }
+      .detail-label {
+        font-size: 0.75rem;
+        color: var(--grey);
+      }
+      .detail-value {
+        font-size: 0.9rem;
+        color: var(--dark);
+        font-weight: 500;
+      }
+      .detail-value.overdue {
+        color: var(--danger);
+      }
+      .edit-form {
+        animation: slideDown 0.3s ease;
+      }
+      .empty-state {
+        text-align: center;
+        padding: 3rem 1rem;
+        color: var(--grey);
+      }
+      .empty-icon {
+        font-size: 4rem;
+        margin-bottom: 1rem;
+      }
+      .empty-state h3 {
+        color: var(--dark);
+        margin: 0 0 0.5rem 0;
+      }
+      .empty-state p {
+        margin: 0;
       }
       .modal-overlay {
         position: fixed;
@@ -638,85 +885,65 @@ import { TaskStats } from '../models/task-stats';
         justify-content: center;
         align-items: center;
         z-index: 1000;
+        backdrop-filter: blur(4px);
       }
       .modal-content {
         background: white;
-        padding: 1.5rem;
-        border-radius: 8px;
+        padding: 2rem;
+        border-radius: 16px;
         max-width: 400px;
         width: 90%;
+        text-align: center;
+        animation: scaleIn 0.3s ease;
+      }
+      @keyframes scaleIn {
+        from {
+          opacity: 0;
+          transform: scale(0.9);
+        }
+        to {
+          opacity: 1;
+          transform: scale(1);
+        }
+      }
+      .modal-icon {
+        font-size: 3rem;
+        margin-bottom: 1rem;
       }
       .modal-content h3 {
-        margin: 0 0 1rem 0;
-        color: #333;
+        margin: 0 0 0.75rem 0;
+        color: var(--dark);
       }
       .modal-content p {
         color: #666;
-        margin-bottom: 0.5rem;
+        margin: 0 0 0.5rem 0;
       }
       .modal-content .warning {
-        color: #e74c3c;
-        font-size: 0.875rem;
+        color: var(--danger);
+        font-size: 0.85rem;
       }
       .modal-actions {
         display: flex;
         gap: 1rem;
         margin-top: 1.5rem;
+        justify-content: center;
       }
       .btn-danger {
-        padding: 0.75rem 1.5rem;
-        background: #e74c3c;
+        background: var(--danger);
         color: white;
         border: none;
-        border-radius: 5px;
+        padding: 0.75rem 1.5rem;
+        border-radius: 8px;
         cursor: pointer;
+        font-weight: 500;
       }
       .btn-cancel-modal {
+        background: var(--light);
+        color: var(--dark);
+        border: 1px solid #d0d0d0;
         padding: 0.75rem 1.5rem;
-        background: #95a5a6;
-        color: white;
-        border: none;
-        border-radius: 5px;
-        cursor: pointer;
-      }
-      .btn-details {
-        background: none;
-        border: none;
-        color: #667eea;
-        cursor: pointer;
-        font-size: 0.8rem;
-        text-decoration: underline;
-        margin-left: auto;
-      }
-      .task-details {
-        background: #f8f9fa;
-        padding: 1rem;
         border-radius: 8px;
-        margin-top: 0.75rem;
-      }
-      .detail-row {
-        display: flex;
-        justify-content: space-between;
-        padding: 0.5rem 0;
-        border-bottom: 1px solid #eee;
-      }
-      .detail-row:last-child {
-        border-bottom: none;
-      }
-      .detail-label {
-        color: #666;
-        font-weight: 500;
-      }
-      .detail-value {
-        color: #333;
-      }
-      .detail-value.overdue {
-        color: #e74c3c;
-        font-weight: 500;
-      }
-      .detail-value.remaining {
-        color: #27ae60;
-        font-weight: 500;
+        cursor: pointer;
       }
     `,
   ],
@@ -789,10 +1016,8 @@ export class TasksComponent implements OnInit {
       this.cdr.detectChanges();
       return;
     }
-
     this.creating = true;
     this.createError = '';
-
     this.taskService.createTask(this.newTask).subscribe({
       next: (task) => {
         this.tasks.unshift(task);
@@ -833,16 +1058,12 @@ export class TasksComponent implements OnInit {
       this.cdr.detectChanges();
       return;
     }
-
     this.saving = true;
     this.editError = '';
-
     this.taskService.updateTask(taskId, this.editTask).subscribe({
       next: (updatedTask) => {
         const index = this.tasks.findIndex((t) => t.id === taskId);
-        if (index !== -1) {
-          this.tasks[index] = updatedTask;
-        }
+        if (index !== -1) this.tasks[index] = updatedTask;
         this.applyFilter();
         this.saving = false;
         this.editingTaskId = null;
@@ -867,9 +1088,7 @@ export class TasksComponent implements OnInit {
     this.taskService.changeStatus(taskId, status).subscribe({
       next: (updatedTask) => {
         const index = this.tasks.findIndex((t) => t.id === taskId);
-        if (index !== -1) {
-          this.tasks[index] = updatedTask;
-        }
+        if (index !== -1) this.tasks[index] = updatedTask;
         this.applyFilter();
         this.loadStats();
         this.cdr.detectChanges();
@@ -889,7 +1108,6 @@ export class TasksComponent implements OnInit {
 
   deleteTask() {
     if (!this.deleteTaskId) return;
-
     this.taskService.deleteTask(this.deleteTaskId).subscribe({
       next: () => {
         this.tasks = this.tasks.filter((t) => t.id !== this.deleteTaskId);
@@ -924,8 +1142,7 @@ export class TasksComponent implements OnInit {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     dueDate.setHours(0, 0, 0, 0);
-    const diffTime = dueDate.getTime() - today.getTime();
-    return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    return Math.ceil((dueDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
   }
 
   isOverdue(task: Task): boolean {
@@ -943,11 +1160,20 @@ export class TasksComponent implements OnInit {
   }
 
   applyFilter() {
-    if (this.statusFilter === 'ALL') {
-      this.filteredTasks = [...this.tasks];
-    } else {
-      this.filteredTasks = this.tasks.filter((t) => t.status === this.statusFilter);
-    }
+    this.filteredTasks =
+      this.statusFilter === 'ALL'
+        ? [...this.tasks]
+        : this.tasks.filter((t) => t.status === this.statusFilter);
+  }
+
+  getStatusLabel(status: string): string {
+    const labels: Record<string, string> = {
+      PENDING: 'Pendiente',
+      IN_PROGRESS: 'En Progreso',
+      COMPLETED: 'Completada',
+      CANCELLED: 'Cancelada',
+    };
+    return labels[status] || status;
   }
 
   logout() {
@@ -958,13 +1184,12 @@ export class TasksComponent implements OnInit {
   formatDate(dateStr: string): string {
     if (!dateStr) return '';
     const date = new Date(dateStr);
-    const options: Intl.DateTimeFormatOptions = {
+    return date.toLocaleDateString('es-ES', {
       day: 'numeric',
       month: 'short',
       year: 'numeric',
       hour: '2-digit',
       minute: '2-digit',
-    };
-    return date.toLocaleDateString('es-ES', options);
+    });
   }
 }
