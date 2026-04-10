@@ -108,6 +108,22 @@ import { TaskStats } from '../models/task-stats';
       <div *ngIf="loading">Cargando...</div>
       <div *ngIf="error" class="error">{{ error }}</div>
 
+      <!-- Delete Confirmation Modal -->
+      <div *ngIf="showDeleteConfirm" class="modal-overlay">
+        <div class="modal-content">
+          <h3>Confirmar eliminación</h3>
+          <p>
+            ¿Estás seguro de que deseas eliminar la tarea "<strong>{{ deleteTaskTitle }}</strong
+            >"?
+          </p>
+          <p class="warning">Esta acción no se puede deshacer.</p>
+          <div class="modal-actions">
+            <button (click)="deleteTask()" class="btn-danger">Eliminar</button>
+            <button (click)="cancelDelete()" class="btn-cancel-modal">Cancelar</button>
+          </div>
+        </div>
+      </div>
+
       <div class="tasks-list">
         <div
           *ngFor="let task of tasks"
@@ -191,6 +207,9 @@ import { TaskStats } from '../models/task-stats';
                 class="btn-action btn-reopen"
               >
                 ↻ Reabrir
+              </button>
+              <button (click)="confirmDelete(task.id, task.title)" class="btn-action btn-delete">
+                🗑 Eliminar
               </button>
             </div>
           </div>
@@ -487,8 +506,64 @@ import { TaskStats } from '../models/task-stats';
       .btn-reopen {
         background: #f39c12;
       }
+      .btn-delete {
+        background: #e74c3c;
+        margin-left: auto;
+      }
       .btn-action:hover {
         opacity: 0.9;
+      }
+      .modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.5);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+      }
+      .modal-content {
+        background: white;
+        padding: 1.5rem;
+        border-radius: 8px;
+        max-width: 400px;
+        width: 90%;
+      }
+      .modal-content h3 {
+        margin: 0 0 1rem 0;
+        color: #333;
+      }
+      .modal-content p {
+        color: #666;
+        margin-bottom: 0.5rem;
+      }
+      .modal-content .warning {
+        color: #e74c3c;
+        font-size: 0.875rem;
+      }
+      .modal-actions {
+        display: flex;
+        gap: 1rem;
+        margin-top: 1.5rem;
+      }
+      .btn-danger {
+        padding: 0.75rem 1.5rem;
+        background: #e74c3c;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+      }
+      .btn-cancel-modal {
+        padding: 0.75rem 1.5rem;
+        background: #95a5a6;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
       }
     `,
   ],
@@ -511,6 +586,10 @@ export class TasksComponent implements OnInit {
   editTask: UpdateTaskRequest = { title: '', description: '', dueDate: '' };
   saving = false;
   editError = '';
+
+  showDeleteConfirm = false;
+  deleteTaskId: number | null = null;
+  deleteTaskTitle = '';
 
   ngOnInit() {
     this.loadTasks();
@@ -638,6 +717,38 @@ export class TasksComponent implements OnInit {
         this.cdr.detectChanges();
       },
     });
+  }
+
+  confirmDelete(taskId: number, title: string) {
+    this.deleteTaskId = taskId;
+    this.deleteTaskTitle = title;
+    this.showDeleteConfirm = true;
+  }
+
+  deleteTask() {
+    if (!this.deleteTaskId) return;
+
+    this.taskService.deleteTask(this.deleteTaskId).subscribe({
+      next: () => {
+        this.tasks = this.tasks.filter((t) => t.id !== this.deleteTaskId);
+        this.showDeleteConfirm = false;
+        this.deleteTaskId = null;
+        this.deleteTaskTitle = '';
+        this.loadStats();
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        this.error = 'Error al eliminar: ' + (err.error?.message || err.message);
+        this.showDeleteConfirm = false;
+        this.cdr.detectChanges();
+      },
+    });
+  }
+
+  cancelDelete() {
+    this.showDeleteConfirm = false;
+    this.deleteTaskId = null;
+    this.deleteTaskTitle = '';
   }
 
   logout() {
