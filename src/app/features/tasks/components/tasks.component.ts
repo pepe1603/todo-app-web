@@ -1,12 +1,13 @@
 import { Component, inject, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { TaskService, Task } from '../../../core/services/task.service';
+import { FormsModule } from '@angular/forms';
+import { TaskService, Task, CreateTaskRequest } from '../../../core/services/task.service';
 import { TaskStats } from '../models/task-stats';
 
 @Component({
   selector: 'app-tasks',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, FormsModule],
   template: `
     <div class="tasks-container">
       <header>
@@ -14,7 +15,6 @@ import { TaskStats } from '../models/task-stats';
         <button (click)="logout()">Cerrar Sesión</button>
       </header>
 
-      <!-- Stats Section -->
       <div *ngIf="stats" class="stats-section">
         <h2>Resumen de Tareas</h2>
         <div class="stats-grid">
@@ -51,8 +51,56 @@ import { TaskStats } from '../models/task-stats';
         </div>
       </div>
 
-      <div *ngIf="loading">Cargando...</div>
+      <div class="create-task-section">
+        <button *ngIf="!showCreateForm" (click)="showCreateForm = true" class="btn-create">
+          + Nueva Tarea
+        </button>
+      </div>
 
+      <div *ngIf="showCreateForm" class="create-form">
+        <h3>Crear Nueva Tarea</h3>
+        <form (ngSubmit)="createTask()">
+          <div class="form-group">
+            <label for="title">Título</label>
+            <input
+              type="text"
+              id="title"
+              [(ngModel)]="newTask.title"
+              name="title"
+              required
+              placeholder="Título de la tarea"
+            />
+          </div>
+          <div class="form-group">
+            <label for="description">Descripción</label>
+            <textarea
+              id="description"
+              [(ngModel)]="newTask.description"
+              name="description"
+              placeholder="Descripción de la tarea"
+              rows="3"
+            ></textarea>
+          </div>
+          <div class="form-group">
+            <label for="dueDate">Fecha límite</label>
+            <input
+              type="datetime-local"
+              id="dueDate"
+              [(ngModel)]="newTask.dueDate"
+              name="dueDate"
+            />
+          </div>
+          <div class="form-actions">
+            <button type="submit" [disabled]="creating" class="btn-submit">
+              {{ creating ? 'Creando...' : 'Crear Tarea' }}
+            </button>
+            <button type="button" (click)="cancelCreate()" class="btn-cancel">Cancelar</button>
+          </div>
+          <div *ngIf="createError" class="error">{{ createError }}</div>
+        </form>
+      </div>
+
+      <div *ngIf="loading">Cargando...</div>
       <div *ngIf="error" class="error">{{ error }}</div>
 
       <div class="tasks-list">
@@ -65,7 +113,6 @@ import { TaskStats } from '../models/task-stats';
           <p>{{ task.description }}</p>
           <span class="status">{{ task.status }}</span>
         </div>
-
         <div *ngIf="tasks.length === 0 && !loading" class="no-tasks">No hay tareas. ¡Crea una!</div>
       </div>
     </div>
@@ -172,6 +219,76 @@ import { TaskStats } from '../models/task-stats';
         background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
         transition: width 0.3s ease;
       }
+      .create-task-section {
+        margin-bottom: 1.5rem;
+      }
+      .btn-create {
+        padding: 0.75rem 1.5rem;
+        background: #27ae60;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        font-size: 1rem;
+        cursor: pointer;
+      }
+      .create-form {
+        background: #f8f9fa;
+        padding: 1.5rem;
+        border-radius: 8px;
+        margin-bottom: 1.5rem;
+      }
+      .create-form h3 {
+        margin: 0 0 1rem 0;
+        color: #333;
+      }
+      .form-group {
+        margin-bottom: 1rem;
+      }
+      .form-group label {
+        display: block;
+        margin-bottom: 0.5rem;
+        color: #555;
+        font-weight: 500;
+      }
+      .form-group input,
+      .form-group textarea {
+        width: 100%;
+        padding: 0.75rem;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        font-size: 1rem;
+        font-family: inherit;
+      }
+      .form-group input:focus,
+      .form-group textarea:focus {
+        outline: none;
+        border-color: #667eea;
+      }
+      .form-actions {
+        display: flex;
+        gap: 1rem;
+      }
+      .btn-submit {
+        padding: 0.75rem 1.5rem;
+        background: #667eea;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        font-size: 1rem;
+        cursor: pointer;
+      }
+      .btn-submit:disabled {
+        background: #ccc;
+      }
+      .btn-cancel {
+        padding: 0.75rem 1.5rem;
+        background: #95a5a6;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        font-size: 1rem;
+        cursor: pointer;
+      }
       .task-card {
         border: 1px solid #ddd;
         padding: 1rem;
@@ -190,9 +307,10 @@ import { TaskStats } from '../models/task-stats';
       }
       .error {
         color: red;
-        padding: 1rem;
+        padding: 0.5rem;
         background: #fee;
-        border-radius: 8px;
+        border-radius: 4px;
+        margin-top: 0.5rem;
       }
     `,
   ],
@@ -205,6 +323,11 @@ export class TasksComponent implements OnInit {
   stats: TaskStats | null = null;
   loading = false;
   error = '';
+
+  showCreateForm = false;
+  creating = false;
+  createError = '';
+  newTask: CreateTaskRequest = { title: '', description: '', dueDate: '' };
 
   ngOnInit() {
     this.loadTasks();
@@ -237,6 +360,39 @@ export class TasksComponent implements OnInit {
         console.log('Error al cargar estadísticas:', err);
       },
     });
+  }
+
+  createTask() {
+    if (!this.newTask.title.trim()) {
+      this.createError = 'El título es requerido';
+      this.cdr.detectChanges();
+      return;
+    }
+
+    this.creating = true;
+    this.createError = '';
+
+    this.taskService.createTask(this.newTask).subscribe({
+      next: (task) => {
+        this.tasks.unshift(task);
+        this.creating = false;
+        this.showCreateForm = false;
+        this.newTask = { title: '', description: '', dueDate: '' };
+        this.loadStats();
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        this.creating = false;
+        this.createError = 'Error al crear tarea: ' + (err.error?.message || err.message);
+        this.cdr.detectChanges();
+      },
+    });
+  }
+
+  cancelCreate() {
+    this.showCreateForm = false;
+    this.newTask = { title: '', description: '', dueDate: '' };
+    this.createError = '';
   }
 
   logout() {
