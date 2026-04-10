@@ -1,7 +1,12 @@
 import { Component, inject, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { TaskService, Task, CreateTaskRequest } from '../../../core/services/task.service';
+import {
+  TaskService,
+  Task,
+  CreateTaskRequest,
+  UpdateTaskRequest,
+} from '../../../core/services/task.service';
 import { TaskStats } from '../models/task-stats';
 
 @Component({
@@ -109,9 +114,54 @@ import { TaskStats } from '../models/task-stats';
           class="task-card"
           [class.completed]="task.status === 'COMPLETED'"
         >
-          <h3>{{ task.title }}</h3>
-          <p>{{ task.description }}</p>
-          <span class="status">{{ task.status }}</span>
+          <!-- Edit Form -->
+          <div *ngIf="editingTaskId === task.id" class="edit-form">
+            <h3>Editar Tarea</h3>
+            <div class="form-group">
+              <label for="editTitle">Título</label>
+              <input type="text" id="editTitle" [(ngModel)]="editTask.title" name="editTitle" />
+            </div>
+            <div class="form-group">
+              <label for="editDescription">Descripción</label>
+              <textarea
+                id="editDescription"
+                [(ngModel)]="editTask.description"
+                name="editDescription"
+                rows="2"
+              ></textarea>
+            </div>
+            <div class="form-group">
+              <label for="editDueDate">Fecha límite</label>
+              <input
+                type="datetime-local"
+                id="editDueDate"
+                [(ngModel)]="editTask.dueDate"
+                name="editDueDate"
+              />
+            </div>
+            <div class="form-actions">
+              <button (click)="saveEdit(task.id)" [disabled]="saving" class="btn-submit">
+                {{ saving ? 'Guardando...' : 'Guardar' }}
+              </button>
+              <button (click)="cancelEdit()" class="btn-cancel">Cancelar</button>
+            </div>
+            <div *ngIf="editError" class="error">{{ editError }}</div>
+          </div>
+
+          <!-- Task Display -->
+          <div *ngIf="editingTaskId !== task.id">
+            <div class="task-header">
+              <h3>{{ task.title }}</h3>
+              <button (click)="startEdit(task)" class="btn-edit">Editar</button>
+            </div>
+            <p>{{ task.description }}</p>
+            <div class="task-meta">
+              <span class="status">{{ task.status }}</span>
+              <span *ngIf="task.dueDate" class="due-date"
+                >📅 {{ task.dueDate | date: 'dd/MM/yyyy HH:mm' }}</span
+              >
+            </div>
+          </div>
         </div>
         <div *ngIf="tasks.length === 0 && !loading" class="no-tasks">No hay tareas. ¡Crea una!</div>
       </div>
@@ -312,6 +362,61 @@ import { TaskStats } from '../models/task-stats';
         border-radius: 4px;
         margin-top: 0.5rem;
       }
+      .task-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .task-header h3 {
+        margin: 0;
+        color: #333;
+      }
+      .btn-edit {
+        padding: 0.25rem 0.75rem;
+        background: #3498db;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 0.875rem;
+      }
+      .task-meta {
+        display: flex;
+        gap: 1rem;
+        align-items: center;
+        margin-top: 0.5rem;
+      }
+      .due-date {
+        color: #666;
+        font-size: 0.875rem;
+      }
+      .edit-form {
+        background: #fff3cd;
+        padding: 1rem;
+        border-radius: 8px;
+      }
+      .edit-form h3 {
+        margin: 0 0 1rem 0;
+        color: #333;
+      }
+      .edit-form .form-group {
+        margin-bottom: 0.75rem;
+      }
+      .edit-form .form-group label {
+        display: block;
+        margin-bottom: 0.25rem;
+        color: #555;
+        font-weight: 500;
+        font-size: 0.875rem;
+      }
+      .edit-form .form-group input,
+      .edit-form .form-group textarea {
+        width: 100%;
+        padding: 0.5rem;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        font-size: 0.9rem;
+      }
     `,
   ],
 })
@@ -328,6 +433,11 @@ export class TasksComponent implements OnInit {
   creating = false;
   createError = '';
   newTask: CreateTaskRequest = { title: '', description: '', dueDate: '' };
+
+  editingTaskId: number | null = null;
+  editTask: UpdateTaskRequest = { title: '', description: '', dueDate: '' };
+  saving = false;
+  editError = '';
 
   ngOnInit() {
     this.loadTasks();
@@ -393,6 +503,51 @@ export class TasksComponent implements OnInit {
     this.showCreateForm = false;
     this.newTask = { title: '', description: '', dueDate: '' };
     this.createError = '';
+  }
+
+  startEdit(task: Task) {
+    this.editingTaskId = task.id;
+    this.editTask = {
+      title: task.title,
+      description: task.description || '',
+      dueDate: task.dueDate ? task.dueDate.slice(0, 16) : '',
+    };
+    this.editError = '';
+  }
+
+  saveEdit(taskId: number) {
+    if (!this.editTask.title?.trim()) {
+      this.editError = 'El título es requerido';
+      this.cdr.detectChanges();
+      return;
+    }
+
+    this.saving = true;
+    this.editError = '';
+
+    this.taskService.updateTask(taskId, this.editTask).subscribe({
+      next: (updatedTask) => {
+        const index = this.tasks.findIndex((t) => t.id === taskId);
+        if (index !== -1) {
+          this.tasks[index] = updatedTask;
+        }
+        this.saving = false;
+        this.editingTaskId = null;
+        this.loadStats();
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        this.saving = false;
+        this.editError = 'Error al guardar: ' + (err.error?.message || err.message);
+        this.cdr.detectChanges();
+      },
+    });
+  }
+
+  cancelEdit() {
+    this.editingTaskId = null;
+    this.editTask = { title: '', description: '', dueDate: '' };
+    this.editError = '';
   }
 
   logout() {
