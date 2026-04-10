@@ -56,6 +56,53 @@ import { TaskStats } from '../models/task-stats';
         </div>
       </div>
 
+      <!-- Filters -->
+      <div class="filters-section">
+        <span class="filter-label">Filtrar por:</span>
+        <div class="filter-buttons">
+          <button
+            type="button"
+            (click)="filterByStatus('ALL')"
+            [class.active]="statusFilter === 'ALL'"
+            class="filter-btn"
+          >
+            Todas
+          </button>
+          <button
+            type="button"
+            (click)="filterByStatus('PENDING')"
+            [class.active]="statusFilter === 'PENDING'"
+            class="filter-btn"
+          >
+            Pendientes
+          </button>
+          <button
+            type="button"
+            (click)="filterByStatus('IN_PROGRESS')"
+            [class.active]="statusFilter === 'IN_PROGRESS'"
+            class="filter-btn"
+          >
+            En Progreso
+          </button>
+          <button
+            type="button"
+            (click)="filterByStatus('COMPLETED')"
+            [class.active]="statusFilter === 'COMPLETED'"
+            class="filter-btn"
+          >
+            Completadas
+          </button>
+          <button
+            type="button"
+            (click)="filterByStatus('CANCELLED')"
+            [class.active]="statusFilter === 'CANCELLED'"
+            class="filter-btn"
+          >
+            Canceladas
+          </button>
+        </div>
+      </div>
+
       <div class="create-task-section">
         <button *ngIf="!showCreateForm" (click)="showCreateForm = true" class="btn-create">
           + Nueva Tarea
@@ -126,7 +173,7 @@ import { TaskStats } from '../models/task-stats';
 
       <div class="tasks-list">
         <div
-          *ngFor="let task of tasks"
+          *ngFor="let task of filteredTasks"
           class="task-card"
           [class.completed]="task.status === 'COMPLETED'"
         >
@@ -354,6 +401,41 @@ import { TaskStats } from '../models/task-stats';
       }
       .create-task-section {
         margin-bottom: 1.5rem;
+      }
+      .filters-section {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+        flex-wrap: wrap;
+      }
+      .filter-label {
+        font-weight: 500;
+        color: #333;
+      }
+      .filter-buttons {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+      }
+      .filter-btn {
+        padding: 0.5rem 1rem;
+        background: white;
+        border: 1px solid #ddd;
+        border-radius: 20px;
+        cursor: pointer;
+        font-size: 0.875rem;
+        color: #666;
+        transition: all 0.2s;
+      }
+      .filter-btn:hover {
+        border-color: #667eea;
+        color: #667eea;
+      }
+      .filter-btn.active {
+        background: #667eea;
+        color: white;
+        border-color: #667eea;
       }
       .btn-create {
         padding: 0.75rem 1.5rem;
@@ -664,6 +746,9 @@ export class TasksComponent implements OnInit {
   deleteTaskId: number | null = null;
   deleteTaskTitle = '';
 
+  statusFilter: 'ALL' | 'PENDING' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED' = 'ALL';
+  filteredTasks: Task[] = [];
+
   ngOnInit() {
     this.loadTasks();
     this.loadStats();
@@ -674,6 +759,7 @@ export class TasksComponent implements OnInit {
     this.taskService.getTasks().subscribe({
       next: (data) => {
         this.tasks = data;
+        this.applyFilter();
         this.loading = false;
         this.cdr.detectChanges();
       },
@@ -710,6 +796,7 @@ export class TasksComponent implements OnInit {
     this.taskService.createTask(this.newTask).subscribe({
       next: (task) => {
         this.tasks.unshift(task);
+        this.applyFilter();
         this.creating = false;
         this.showCreateForm = false;
         this.newTask = { title: '', description: '', dueDate: '' };
@@ -756,6 +843,7 @@ export class TasksComponent implements OnInit {
         if (index !== -1) {
           this.tasks[index] = updatedTask;
         }
+        this.applyFilter();
         this.saving = false;
         this.editingTaskId = null;
         this.loadStats();
@@ -782,6 +870,7 @@ export class TasksComponent implements OnInit {
         if (index !== -1) {
           this.tasks[index] = updatedTask;
         }
+        this.applyFilter();
         this.loadStats();
         this.cdr.detectChanges();
       },
@@ -804,6 +893,7 @@ export class TasksComponent implements OnInit {
     this.taskService.deleteTask(this.deleteTaskId).subscribe({
       next: () => {
         this.tasks = this.tasks.filter((t) => t.id !== this.deleteTaskId);
+        this.applyFilter();
         this.showDeleteConfirm = false;
         this.deleteTaskId = null;
         this.deleteTaskTitle = '';
@@ -845,6 +935,19 @@ export class TasksComponent implements OnInit {
 
   getDaysOverdue(task: Task): number {
     return Math.abs(this.getDaysRemaining(task));
+  }
+
+  filterByStatus(status: 'ALL' | 'PENDING' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED') {
+    this.statusFilter = status;
+    this.applyFilter();
+  }
+
+  applyFilter() {
+    if (this.statusFilter === 'ALL') {
+      this.filteredTasks = [...this.tasks];
+    } else {
+      this.filteredTasks = this.tasks.filter((t) => t.status === this.statusFilter);
+    }
   }
 
   logout() {
