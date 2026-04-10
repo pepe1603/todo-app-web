@@ -49,8 +49,8 @@ import { AuthService, LoginRequest } from '../../../core/services/auth.service';
 
         <div *ngIf="needsVerification" class="verification-help">
           <p class="info-text">Tu cuenta no ha sido verificada.</p>
-          <button type="button" (click)="resendOtp()" class="btn-secondary">
-            Reenviar código OTP
+          <button type="button" (click)="goToVerify()" class="btn-secondary">
+            Verificar mi cuenta
           </button>
         </div>
       </div>
