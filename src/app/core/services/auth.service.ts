@@ -33,11 +33,11 @@ export interface AuthResponse {
 }
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class AuthService {
   private apiUrl = 'http://localhost:9090/api/auth';
-  
+
   constructor(private http: HttpClient) {}
 
   register(data: RegisterRequest): Observable<RegisterResponse> {
@@ -53,9 +53,9 @@ export class AuthService {
   }
 
   login(data: LoginRequest): Observable<AuthResponse> {
-    return this.http.post<AuthResponse>(`${this.apiUrl}/login`, data).pipe(
-      tap(response => this.saveToken(response.token))
-    );
+    return this.http
+      .post<AuthResponse>(`${this.apiUrl}/login`, data)
+      .pipe(tap((response) => this.saveToken(response.token)));
   }
 
   logout(): void {
@@ -72,5 +72,13 @@ export class AuthService {
 
   private saveToken(token: string): void {
     localStorage.setItem('token', token);
+  }
+
+  forgotPassword(email: string): Observable<string> {
+    return this.http.post<string>(`${this.apiUrl}/forgot-password`, { email });
+  }
+
+  resetPassword(token: string, newPassword: string): Observable<string> {
+    return this.http.post<string>(`${this.apiUrl}/reset-password`, { token, newPassword });
   }
 }
