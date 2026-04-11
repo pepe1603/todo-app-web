@@ -1,6 +1,6 @@
 import { Injectable, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, tap, catchError, throwError } from 'rxjs';
+import { Observable, tap, catchError, throwError, of } from 'rxjs';
 
 export interface RegisterRequest {
   fullName: string;
@@ -75,7 +75,13 @@ export class AuthService {
   }
 
   forgotPassword(email: string): Observable<string> {
-    return this.http.post<string>(`${this.apiUrl}/forgot-password`, { email });
+    console.log('Enviando solicitud forgot-password con email:', email);
+    return this.http.post<string>(`${this.apiUrl}/forgot-password`, { email }).pipe(
+      tap({
+        next: (response) => console.log('Respuesta exitosa:', response),
+        error: (error) => console.log('Error en petición:', error),
+      }),
+    );
   }
 
   resetPassword(token: string, newPassword: string): Observable<string> {

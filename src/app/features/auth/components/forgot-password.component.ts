@@ -235,9 +235,11 @@ export class ForgotPasswordComponent {
     this.loading = true;
     this.error = '';
     this.success = '';
+    console.log('Solicitando código para:', this.email);
 
     this.authService.forgotPassword(this.email).subscribe({
-      next: (message) => {
+      next: (message: string) => {
+        console.log('Código enviado:', message);
         this.loading = false;
         this.step = 'sent';
         this.success = message;
@@ -245,8 +247,15 @@ export class ForgotPasswordComponent {
         this.cdr.detectChanges();
       },
       error: (err: any) => {
+        console.log('Error completo:', err);
         this.loading = false;
-        this.error = err.error?.message || 'Error alSolicitar código';
+        if (err.status === 0) {
+          this.error = 'No se puede conectar al servidor. ¿Está la API funcionando?';
+        } else if (err.error?.message) {
+          this.error = err.error.message;
+        } else {
+          this.error = 'Error al solicitar código. Intenta de nuevo.';
+        }
         this.cdr.detectChanges();
       },
     });
