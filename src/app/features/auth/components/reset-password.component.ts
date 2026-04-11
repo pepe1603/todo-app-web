@@ -17,15 +17,15 @@ import { AuthService } from '../../../core/services/auth.service';
 
         <form (ngSubmit)="resetPassword()">
           <div class="form-group">
-            <label for="token">Código de recuperación</label>
+            <label for="token">Código de recuperación (8 caracteres)</label>
             <input
               type="text"
               id="token"
               [(ngModel)]="token"
               name="token"
               required
-              maxlength="32"
-              placeholder="Código de 32 caracteres"
+              maxlength="8"
+              placeholder="Ej: AB12CD34"
               class="form-input"
             />
           </div>
@@ -221,7 +221,7 @@ export class ResetPasswordComponent implements OnInit {
 
   canSubmit(): boolean {
     return !!(
-      this.token.trim() &&
+      this.token.trim().length >= 6 &&
       this.newPassword &&
       this.newPassword.length >= 6 &&
       this.newPassword === this.confirmPassword
