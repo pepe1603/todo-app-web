@@ -487,7 +487,7 @@ export class RecoveryFlowComponent implements OnInit, OnDestroy {
     this.loading = true;
     this.error = '';
 
-    this.authService.verifyResetToken(this.token).subscribe({
+    this.authService.verifyResetCode(this.token).subscribe({
       next: (response: any) => {
         this.loading = false;
         if (response.success) {
@@ -563,7 +563,7 @@ export class RecoveryFlowComponent implements OnInit, OnDestroy {
     this.loading = true;
     this.error = '';
 
-    this.authService.resetPassword(this.token, this.newPassword).subscribe({
+    this.authService.resetPassword(this.email, this.newPassword).subscribe({
       next: (response: any) => {
         this.loading = false;
         if (response.success) {

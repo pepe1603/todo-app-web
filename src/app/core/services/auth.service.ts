@@ -82,11 +82,11 @@ export class AuthService {
     return this.http.post(`${this.apiUrl}/forgot-password`, { email });
   }
 
-  verifyResetToken(token: string): Observable<any> {
-    return this.http.post(`${this.apiUrl}/verify-reset-token`, { token });
+  verifyResetCode(code: string): Observable<any> {
+    return this.http.post(`${this.apiUrl}/verify-reset-code`, { code });
   }
 
-  resetPassword(token: string, newPassword: string): Observable<any> {
-    return this.http.post(`${this.apiUrl}/reset-password`, { token, newPassword });
+  resetPassword(email: string, newPassword: string): Observable<any> {
+    return this.http.post(`${this.apiUrl}/reset-password`, { email, newPassword });
   }
 }
