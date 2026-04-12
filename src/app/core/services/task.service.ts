@@ -2,6 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { TaskStats } from '../../features/tasks/models/task-stats';
+import { environment } from '../../../environments/environment';
 
 export interface Task {
   id: number;
@@ -29,7 +30,7 @@ export interface UpdateTaskRequest {
   providedIn: 'root',
 })
 export class TaskService {
-  private apiUrl = 'http://localhost:9090/api/tasks';
+  private apiUrl = `${environment.apiUrl}/api/tasks`;
   private http = inject(HttpClient);
 
   getTasks(): Observable<Task[]> {
