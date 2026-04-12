@@ -35,29 +35,43 @@ import { AuthService } from '../../../core/services/auth.service';
         </div>
 
         <div *ngIf="step === 'otp'" class="otp-step">
-          <form (ngSubmit)="verifyOtp()">
-            <div class="form-group">
-              <label for="otp">Código OTP</label>
-              <input
-                type="text"
-                id="otp"
-                [(ngModel)]="otp"
-                name="otp"
-                required
-                maxlength="6"
-                placeholder="Ingresa los 6 dígitos"
-                class="otp-input"
-              />
-            </div>
-
-            <button type="submit" [disabled]="loading" class="btn-primary">
-              {{ loading ? 'Verificando...' : 'Verificar Cuenta' }}
+          <div *ngIf="!codeSent" class="send-code-section">
+            <p class="info-text">
+              ¿Ya tienes un código?
+              <button type="button" (click)="goToInputCode()" class="btn-link">
+                Ingresar código
+              </button>
+            </p>
+            <button type="button" (click)="sendOtp()" [disabled]="loading" class="btn-primary">
+              {{ loading ? 'Enviando...' : 'Enviar código de verificación' }}
             </button>
-          </form>
+          </div>
 
-          <button (click)="resendOtp()" [disabled]="resendDisabled" class="btn-link">
-            {{ resendDisabled ? 'Espera ' + resendCountdown + 's' : 'Reenviar código' }}
-          </button>
+          <div *ngIf="codeSent" class="verify-section">
+            <form (ngSubmit)="verifyOtp()">
+              <div class="form-group">
+                <label for="otp">Código OTP</label>
+                <input
+                  type="text"
+                  id="otp"
+                  [(ngModel)]="otp"
+                  name="otp"
+                  required
+                  maxlength="6"
+                  placeholder="Ingresa los 6 dígitos"
+                  class="otp-input"
+                />
+              </div>
+
+              <button type="submit" [disabled]="loading" class="btn-primary">
+                {{ loading ? 'Verificando...' : 'Verificar Cuenta' }}
+              </button>
+            </form>
+
+            <button (click)="resendOtp()" [disabled]="resendDisabled" class="btn-link">
+              {{ resendDisabled ? 'Espera ' + resendCountdown + 's' : 'Reenviar código' }}
+            </button>
+          </div>
         </div>
 
         <div *ngIf="error" class="error-message">{{ error }}</div>
@@ -199,6 +213,7 @@ export class VerifyComponent implements OnInit, OnDestroy {
   loading = false;
   error = '';
   success = '';
+  codeSent = false;
 
   resendDisabled = false;
   resendCountdown = 0;
@@ -206,19 +221,18 @@ export class VerifyComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     const emailParam = this.route.snapshot.queryParams['email'];
-    const sentParam = this.route.snapshot.queryParams['sent'];
 
     if (emailParam) {
       this.email = emailParam;
       this.step = 'otp';
-
-      if (sentParam === 'true') {
-        this.sendOtp();
-      }
     }
   }
 
-  private sendOtp() {
+  goToInputCode() {
+    this.codeSent = true;
+  }
+
+  sendOtp() {
     if (!this.email) return;
 
     this.loading = true;

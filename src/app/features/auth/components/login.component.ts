@@ -241,22 +241,8 @@ export class LoginComponent {
   }
 
   goToVerify() {
-    this.loading = true;
-    this.error = '';
-
-    this.authService.resendOtp(this.verificationEmail).subscribe({
-      next: () => {
-        this.loading = false;
-        this.router.navigate(['/auth/verify'], {
-          queryParams: { email: this.verificationEmail, sent: 'true' },
-        });
-        this.cdr.detectChanges();
-      },
-      error: (err) => {
-        this.loading = false;
-        this.error = err.error?.message || 'Error al enviar código de verificación';
-        this.cdr.detectChanges();
-      },
+    this.router.navigate(['/auth/verify'], {
+      queryParams: { email: this.verificationEmail },
     });
   }
 }
