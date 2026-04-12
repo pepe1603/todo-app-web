@@ -238,11 +238,11 @@ export class ForgotPasswordComponent {
     console.log('Solicitando código para:', this.email);
 
     this.authService.forgotPassword(this.email).subscribe({
-      next: (message: string) => {
-        console.log('Código enviado:', message);
+      next: (response: any) => {
+        console.log('Código enviado:', response);
         this.loading = false;
         this.step = 'sent';
-        this.success = message;
+        this.success = response.message || 'Código enviado';
         this.startResendCountdown();
         this.cdr.detectChanges();
       },

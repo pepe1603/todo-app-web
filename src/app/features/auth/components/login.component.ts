@@ -44,7 +44,7 @@ import { AuthService, LoginRequest } from '../../../core/services/auth.service';
         </form>
 
         <p class="auth-link">¿No tienes cuenta? <a routerLink="/auth/register">Regístrate</a></p>
-        <p class="auth-link"><a routerLink="/auth/forgot-password">¿Olvidaste tu contraseña?</a></p>
+        <p class="auth-link"><a routerLink="/auth/recovery">¿Olvidaste tu contraseña?</a></p>
 
         <div *ngIf="error" class="error-message">{{ error }}</div>
 
@@ -195,6 +195,7 @@ export class LoginComponent {
       next: (response) => {
         console.log('Login exitoso:', response);
         this.loading = false;
+        this.cdr.detectChanges();
         this.router.navigate(['/tasks']);
       },
       error: (err: any) => {

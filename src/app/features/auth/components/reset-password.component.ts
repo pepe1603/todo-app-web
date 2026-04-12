@@ -221,7 +221,7 @@ export class ResetPasswordComponent implements OnInit {
 
   canSubmit(): boolean {
     return !!(
-      this.token.trim().length >= 6 &&
+      this.token.trim().length === 8 &&
       this.newPassword &&
       this.newPassword.length >= 6 &&
       this.newPassword === this.confirmPassword
@@ -245,15 +245,15 @@ export class ResetPasswordComponent implements OnInit {
     this.error = '';
 
     this.authService.resetPassword(this.token, this.newPassword).subscribe({
-      next: (message) => {
+      next: (response: any) => {
         this.loading = false;
-        this.success = message + ' Redirigiendo al login...';
+        this.success = response.message + ' Redirigiendo al login...';
         this.cdr.detectChanges();
         setTimeout(() => {
           this.router.navigate(['/auth/login']);
         }, 2000);
       },
-      error: (err) => {
+      error: (err: any) => {
         this.loading = false;
         this.error = err.error?.message || 'Error al restablecer contraseña';
         this.cdr.detectChanges();
@@ -270,8 +270,8 @@ export class ResetPasswordComponent implements OnInit {
     }
 
     this.authService.forgotPassword(this.email).subscribe({
-      next: () => {
-        this.success = 'Nuevo código enviado';
+      next: (response: any) => {
+        this.success = response.message || 'Nuevo código enviado';
         this.startResendCountdown();
         this.cdr.detectChanges();
       },
