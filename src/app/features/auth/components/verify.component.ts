@@ -206,13 +206,13 @@ export class VerifyComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     const emailParam = this.route.snapshot.queryParams['email'];
-    const resendParam = this.route.snapshot.queryParams['resend'];
+    const sentParam = this.route.snapshot.queryParams['sent'];
 
     if (emailParam) {
       this.email = emailParam;
       this.step = 'otp';
 
-      if (resendParam === 'true') {
+      if (sentParam === 'true') {
         this.sendOtp();
       }
     }
