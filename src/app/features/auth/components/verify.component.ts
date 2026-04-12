@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, inject, OnInit, ChangeDetectorRef, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -187,7 +187,7 @@ import { AuthService } from '../../../core/services/auth.service';
     `,
   ],
 })
-export class VerifyComponent implements OnInit {
+export class VerifyComponent implements OnInit, OnDestroy {
   private authService = inject(AuthService);
   private router = inject(Router);
   private route = inject(ActivatedRoute);
@@ -202,13 +202,39 @@ export class VerifyComponent implements OnInit {
 
   resendDisabled = false;
   resendCountdown = 0;
+  private resendInterval: any;
 
   ngOnInit() {
     const emailParam = this.route.snapshot.queryParams['email'];
+    const resendParam = this.route.snapshot.queryParams['resend'];
+
     if (emailParam) {
       this.email = emailParam;
       this.step = 'otp';
+
+      if (resendParam === 'true') {
+        this.sendOtp();
+      }
     }
+  }
+
+  private sendOtp() {
+    if (!this.email) return;
+
+    this.loading = true;
+    this.authService.resendOtp(this.email).subscribe({
+      next: () => {
+        this.loading = false;
+        this.success = 'Código enviado a tu email';
+        this.startResendCountdown();
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        this.loading = false;
+        this.error = err.error?.message || 'Error al enviar código';
+        this.cdr.detectChanges();
+      },
+    });
   }
 
   setEmail() {
@@ -267,13 +293,18 @@ export class VerifyComponent implements OnInit {
   private startResendCountdown() {
     this.resendDisabled = true;
     this.resendCountdown = 60;
-    const interval = setInterval(() => {
+    if (this.resendInterval) clearInterval(this.resendInterval);
+    this.resendInterval = setInterval(() => {
       this.resendCountdown--;
       if (this.resendCountdown <= 0) {
         this.resendDisabled = false;
-        clearInterval(interval);
+        clearInterval(this.resendInterval);
         this.cdr.detectChanges();
       }
     }, 1000);
+  }
+
+  ngOnDestroy() {
+    if (this.resendInterval) clearInterval(this.resendInterval);
   }
 }
