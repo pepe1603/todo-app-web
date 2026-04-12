@@ -4,12 +4,29 @@ import { RegisterComponent } from './features/auth/components/register.component
 import { VerifyComponent } from './features/auth/components/verify.component';
 import { RecoveryFlowComponent } from './features/auth/components/recovery-flow.component';
 import { AuthGuard } from './core/guards/auth.guard';
+import { GuestGuard } from './core/guards/guest.guard';
 
 export const routes: Routes = [
-  { path: 'auth/login', component: LoginComponent },
-  { path: 'auth/register', component: RegisterComponent },
-  { path: 'auth/verify', component: VerifyComponent },
-  { path: 'auth/recovery', component: RecoveryFlowComponent },
+  {
+    path: 'auth/login',
+    component: LoginComponent,
+    canActivate: [GuestGuard],
+  },
+  {
+    path: 'auth/register',
+    component: RegisterComponent,
+    canActivate: [GuestGuard],
+  },
+  {
+    path: 'auth/verify',
+    component: VerifyComponent,
+    canActivate: [GuestGuard],
+  },
+  {
+    path: 'auth/recovery',
+    component: RecoveryFlowComponent,
+    canActivate: [GuestGuard],
+  },
   {
     path: 'tasks',
     loadComponent: () =>
