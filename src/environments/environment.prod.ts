@@ -1,4 +1,4 @@
 export const environment = {
   production: true,
-  apiUrl: 'http://todo-app-demo-production.up.railway.app:9090',
+  apiUrl: 'http://31.97.31.232:9090',
 };
