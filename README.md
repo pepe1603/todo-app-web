@@ -193,7 +193,7 @@ JWT_ACCESS_TOKEN_EXPIRATION: 900000
 
 ## 📄 Documentación API
 
-- **Swagger UI:** [http://31.97.31.232:9090/swagger-ui.html](http://31.97.31.232:9090/swagger-ui.html)
+- **Swagger UI:** [http://31.97.31.232:9090/swagger-ui/index.html](http://31.97.31.232:9090/swagger-ui/index.html)
 
 Ver el archivo `API_DOCUMENTATION.md` en el directorio del backend para información detallada de todos los endpoints, incluyendo códigos de error y ejemplos de respuestas.
 
